@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Give Them the Ball Back™</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&family=Caveat:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#1A1015}
+
+.deck{width:100vw;height:100vh;position:relative}
+.slide{
+  display:none;width:100%;height:100%;
+  position:absolute;top:0;left:0;
+  font-family:'DM Sans',sans-serif;
+  flex-direction:column;justify-content:center;
+  transition:opacity 0.35s ease;
+}
+.slide.active{display:flex}
+
+.lines{
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  background-image:repeating-linear-gradient(transparent,transparent 39px,rgba(150,130,100,0.11) 39px,rgba(150,130,100,0.11) 40px);
+  pointer-events:none;z-index:0
+}
+
+.slide-reflect{background:#2E1A28}
+.slide-content{background:#F7F2E8}
+
+/* REFLECT SLIDES */
+.reflect-inner{
+  padding:10vh 12vw;
+  position:relative;z-index:1;
+  flex:1;display:flex;flex-direction:column;justify-content:center;
+  max-width:900px;
+}
+.reflect-tag{
+  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;
+  letter-spacing:2.5px;text-transform:uppercase;
+  color:rgba(247,220,200,0.4);margin-bottom:32px
+}
+.reflect-q{
+  font-family:'Playfair Display',serif;font-size:clamp(28px,3.8vw,52px);
+  font-weight:400;color:#F7EDE4;line-height:1.45;font-style:italic;
+}
+.reflect-sub{
+  font-family:'Caveat',cursive;font-size:clamp(18px,1.8vw,26px);
+  color:rgba(200,89,58,0.65);margin-top:36px
+}
+
+/* CONTENT SLIDES */
+.content-inner{
+  padding:8vh 10vw;
+  position:relative;z-index:1;
+  flex:1;display:flex;flex-direction:column;justify-content:center;
+  max-width:1100px;width:100%;
+}
+.tag{
+  display:inline-block;font-family:'DM Sans',sans-serif;
+  font-size:12px;font-weight:500;letter-spacing:2px;text-transform:uppercase;
+  color:#C8593A;border:1px solid rgba(200,89,58,0.3);
+  padding:6px 18px;border-radius:30px;margin-bottom:28px
+}
+h1.display{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(48px,6vw,88px);
+  font-weight:400;color:#1E1410;line-height:1.1;letter-spacing:-1px;
+  margin-bottom:20px
+}
+h2.section{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(30px,3.5vw,52px);
+  font-weight:400;color:#1E1410;line-height:1.25;
+  margin-bottom:16px
+}
+.caveat{font-family:'Caveat',cursive;font-size:clamp(20px,2vw,30px);color:#C8593A}
+.caveat-sm{font-family:'Caveat',cursive;font-size:clamp(16px,1.5vw,22px);color:#8A7060}
+.body{
+  font-family:'DM Sans',sans-serif;font-size:clamp(15px,1.4vw,20px);
+  font-weight:300;color:#3A2E28;line-height:1.75
+}
+.body strong{font-weight:500;color:#1E1410}
+
+.quote-line{border-left:3px solid #C8593A;padding:12px 20px;margin-top:24px}
+
+/* MOVE PILLS */
+.move-row{display:flex;gap:16px;margin-top:16px}
+.move-pill{
+  flex:1;background:rgba(255,252,245,0.75);
+  border:1px solid rgba(180,160,130,0.28);
+  border-radius:14px;padding:28px 24px;
+}
+.move-num-big{
+  font-family:'Caveat',cursive;font-size:clamp(36px,4vw,52px);
+  color:rgba(200,89,58,0.18);display:block;line-height:1
+}
+.move-name{
+  font-family:'Caveat',cursive;font-size:clamp(22px,2vw,30px);
+  color:#4A2040;display:block;margin:6px 0
+}
+.move-desc{
+  font-family:'DM Sans',sans-serif;font-size:clamp(13px,1.1vw,16px);
+  font-weight:300;color:#7A6A5A;line-height:1.6
+}
+
+/* IDENTITY GRID */
+.id-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center;margin-top:20px}
+.id-card{
+  background:rgba(255,252,245,0.75);
+  border:1px solid rgba(180,160,130,0.28);
+  border-radius:14px;padding:28px 24px
+}
+.vs{font-family:'Caveat',cursive;font-size:clamp(22px,2.5vw,36px);color:rgba(130,110,90,0.3);text-align:center}
+
+/* EXAMPLE CARDS */
+.reveal-btn{
+  display:inline-flex;align-items:center;gap:10px;
+  margin-top:24px;
+  background:rgba(200,89,58,0.08);
+  border:1px solid rgba(200,89,58,0.25);
+  border-radius:30px;padding:12px 28px;
+  font-family:'DM Sans',sans-serif;
+  font-size:clamp(13px,1.1vw,16px);font-weight:500;
+  color:#C8593A;cursor:pointer;transition:all 0.2s
+}
+.reveal-btn:hover{background:rgba(200,89,58,0.16)}
+.reveal-btn svg{transition:transform 0.3s;flex-shrink:0}
+.reveal-btn.open svg{transform:rotate(90deg)}
+
+.answer-block{
+  overflow:hidden;max-height:0;
+  transition:max-height 0.55s ease,opacity 0.4s ease;
+  opacity:0;margin-top:0
+}
+.answer-block.visible{max-height:1000px;opacity:1;margin-top:20px}
+
+.ex-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.ex-card{
+  background:rgba(255,252,245,0.8);
+  border:1px solid rgba(180,160,130,0.28);
+  border-radius:12px;padding:20px 22px
+}
+.ex-context{font-family:'Caveat',cursive;font-size:clamp(14px,1.2vw,18px);color:#8A7060;margin-bottom:8px}
+.ex-situation{
+  font-family:'DM Sans',sans-serif;font-size:clamp(12px,1vw,15px);
+  font-weight:300;color:#7A6A5A;margin-bottom:10px;font-style:italic
+}
+.ex-arrow{font-family:'Caveat',cursive;font-size:clamp(12px,1vw,15px);color:rgba(200,89,58,0.5);margin:6px 0}
+.ex-response{
+  font-family:'DM Sans',sans-serif;font-size:clamp(13px,1.1vw,16px);
+  font-weight:400;color:#1E1410;line-height:1.65;
+  border-left:2px solid #C8593A;padding-left:14px;margin-top:6px
+}
+
+/* PREFRAME PARTS */
+.preframe-parts{display:flex;flex-direction:column;gap:10px;margin-top:16px;margin-bottom:4px}
+.pf-part{
+  display:flex;align-items:center;gap:16px;
+  background:rgba(255,252,245,0.75);
+  border:1px solid rgba(180,160,130,0.28);
+  border-radius:10px;padding:16px 22px
+}
+.pf-num{font-family:'Caveat',cursive;font-size:clamp(22px,2vw,30px);color:rgba(200,89,58,0.25);min-width:30px}
+.pf-label{font-family:'Caveat',cursive;font-size:clamp(16px,1.5vw,22px);color:#4A2040;min-width:160px}
+.pf-body{font-family:'DM Sans',sans-serif;font-size:clamp(13px,1.1vw,16px);font-weight:300;color:#7A6A5A}
+
+/* NAV */
+.nav{
+  position:fixed;bottom:32px;left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:16px;
+  background:rgba(26,16,21,0.7);
+  backdrop-filter:blur(8px);
+  padding:10px 20px;border-radius:50px;
+  z-index:100
+}
+.nb{
+  width:38px;height:38px;border-radius:50%;
+  border:1px solid rgba(247,220,200,0.2);
+  background:transparent;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;color:rgba(247,220,200,0.7);
+  transition:all 0.2s
+}
+.nb:hover{background:rgba(247,220,200,0.1);color:#F7EDE4}
+.nb:disabled{opacity:0.2;cursor:default}
+.nb:disabled:hover{background:transparent;color:rgba(247,220,200,0.7)}
+.dots{display:flex;gap:7px;align-items:center}
+.dot{
+  width:7px;height:7px;border-radius:50%;
+  background:rgba(247,220,200,0.2);
+  transition:all 0.25s;cursor:pointer
+}
+.dot.active{background:#C8593A;width:20px;border-radius:4px}
+
+.slide-num{
+  position:fixed;bottom:36px;right:48px;
+  font-family:'Caveat',cursive;font-size:18px;
+  color:rgba(100,80,60,0.3);z-index:100
+}
+.slide-reflect .slide-num-r{
+  position:fixed;bottom:36px;right:48px;
+  font-family:'Caveat',cursive;font-size:18px;
+  color:rgba(247,220,200,0.2);z-index:100
+}
+
+/* KEY HINT */
+.key-hint{
+  position:fixed;bottom:36px;left:48px;
+  font-family:'DM Sans',sans-serif;font-size:12px;
+  color:rgba(180,160,140,0.3);letter-spacing:1px;
+  text-transform:uppercase;z-index:100
+}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.a1{animation:fadeUp 0.45s ease 0.05s forwards;opacity:0}
+.a2{animation:fadeUp 0.45s ease 0.2s forwards;opacity:0}
+.a3{animation:fadeUp 0.45s ease 0.35s forwards;opacity:0}
+.a4{animation:fadeUp 0.45s ease 0.5s forwards;opacity:0}
+.a5{animation:fadeUp 0.45s ease 0.65s forwards;opacity:0}
+</style>
+</head>
+<body>
+
+<div class="deck">
+
+<!-- 1 REFLECT -->
+<div class="slide slide-reflect active" id="s1">
+  <div class="reflect-inner">
+    <div class="reflect-tag a1">Before we start — reflect</div>
+    <div class="reflect-q a2">"Think of the last time someone put you on the spot. What did you do in that first second?"</div>
+    <div class="reflect-sub a3">Take a moment. No right answer.</div>
+  </div>
+</div>
+
+<!-- 2 TITLE -->
+<div class="slide slide-content" id="s2">
+  <div class="lines"></div>
+  <div class="content-inner">
+    <div class="tag a1">Framework</div>
+    <h1 class="display a2">Give Them<br>the Ball Back™</h1>
+    <div class="caveat a3" style="margin-bottom:20px">— regain cognitive control before you answer</div>
+    <p class="body a4">Most people answer before they think.<br>This framework teaches you to <strong>think before you answer.</strong></p>
+  </div>
+</div>
+
+<!-- 3 REFLECT -->
+<div class="slide slide-reflect" id="s3">
+  <div class="reflect-inner">
+    <div class="reflect-tag a1">Reflect</div>
+    <div class="reflect-q a2">"Have you ever said something under pressure and immediately thought — why did I say that? Where did that answer come from?"</div>
+    <div class="reflect-sub a3">Think of a specific moment.</div>
+  </div>
+</div>
+
+<!-- 4 PROBLEM -->
+<div class="slide slide-content" id="s4">
+  <div class="lines"></div>
+  <div class="content-inner">
+    <div class="tag a1">The Problem</div>
+    <h2 class="section a2">Panic answering is a <span style="color:#C8593A">survival reflex.</span></h2>
+    <p class="body a3" style="margin-bottom:20px">Under pressure, your brain prioritizes speed over quality. You fill the silence before you've actually formed a thought.</p>
+    <div class="quote-line a4">
+      <div class="caveat-sm">Your first answer is rarely your best answer. It's just your fastest one.</div>
+    </div>
+    <button class="reveal-btn a4" onclick="toggle(this,'ex4')">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M4 2l6 5-6 5" stroke="#C8593A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      See what this looks like
+    </button>
+    <div class="answer-block" id="ex4">
+      <div class="ex-grid">
+        <div class="ex-card">
+          <div class="ex-context">In a client meeting</div>
+          <div class="ex-situation">"Why is this behind schedule?"</div>
+          <div class="ex-arrow">→ panic answer:</div>
+          <div class="ex-response">"Well, the team had some issues and we thought the deadline was flexible and also there were some miscommunications..."</div>
+        </div>
+        <div class="ex-card">
+          <div class="ex-context">In a job interview</div>
+          <div class="ex-situation">"What's your biggest weakness?"</div>
+          <div class="ex-arrow">→ panic answer:</div>
+          <div class="ex-response">"I just work too hard sometimes, I really care too much about my work..."</div>
+        </div>
+        <div class="ex-card">
+          <div class="ex-context">Put on the spot in a meeting</div>
+          <div class="ex-situation">"What do you think we should do?"</div>
+          <div class="ex-arrow">→ panic answer:</div>
+          <div class="ex-response">"Yeah I think... maybe we could... I mean there are a few options, it depends really..."</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 5 REFLECT -->
+<div class="slide slide-reflect" id="s5">
+  <div class="reflect-inner">
+    <div class="reflect-tag a1">Reflect</div>
+    <div class="reflect-q a2">"When you walk into a high-stakes conversation — do you feel like you're on equal ground, or like you need to prove something first?"</div>
+    <div class="reflect-sub a3">Be honest with yourself.</div>
+  </div>
+</div>
+
+<!-- 6 ROOT CAUSE -->
+<div class="slide slide-content" id="s6">
+  <div class="lines"></div>
+  <div class="content-inner">
+    <div class="tag a1">Root Cause</div>
+    <h2 class="section a2">You feel like a <span style="color:#C8593A">student</span> in that moment.</h2>
+    <div class="caveat-sm a2" style="margin-bottom:20px">lower status · on trial · must earn your place with speed</div>
+    <div class="id-grid a3">
+      <div class="id-card">
+        <div class="caveat-sm" style="margin-bottom:10px">when you feel →</div>
+        <p class="body" style="font-size:clamp(14px,1.2vw,18px)">Lower. On trial. Like you must answer fast or look incompetent.</p>
+        <div style="margin-top:12px;font-family:'Caveat',cursive;font-size:clamp(16px,1.5vw,22px);color:#C8593A">panic fills the gap</div>
+      </div>
+      <div class="vs">vs</div>
+      <div class="id-card">
+        <div class="caveat-sm" style="margin-bottom:10px">when you feel →</div>
+        <p class="body" style="font-size:clamp(14px,1.2vw,18px)">Equal. You have the right to slow it down. You don't owe anyone speed.</p>
+        <div style="margin-top:12px;font-family:'Caveat',cursive;font-size:clamp(16px,1.5vw,22px);color:#4A2040">framework becomes possible</div>
+      </div>
+    </div>
+    <p class="body a4" style="margin-top:20px;opacity:0.65;font-size:clamp(13px,1.1vw,16px)">The three moves only work when your identity supports them. Without that, even a memorized phrase won't come out under pressure.</p>
+  </div>
+</div>
+
+<!-- 7 REFLECT -->
+<div class="slide slide-reflect" id="s7">
+  <div class="reflect-inner">
+    <div class="reflect-tag a1">Reflect</div>
+    <div class="reflect-q a2">"Which would feel hardest right now — repeating the question back, asking for clarity, or saying you need a moment to think?"</div>
+    <div class="reflect-sub a3">Notice where the resistance lives.</div>
+  </div>
+</div>
+
+<!-- 8 THREE MOVES -->
+<div class="slide slide-content" id="s8">
+  <div class="lines"></div>
+  <div class="content-inner">
+    <div class="tag a1">The Framework</div>
+    <h2 class="section a2" style="margin-bottom:24px">Three moves. One purpose.</h2>
+    <div class="move-row a3">
+      <div class="move-pill">
+        <span class="move-num-big">01</span>
+        <span class="move-name">Paraphrase</span>
+        <span class="move-desc">Reflect the meaning back as a question. Stop there. Let them confirm or correct — then think.</span>
+      </div>
+      <div class="move-pill">
+        <span class="move-num-big">02</span>
+        <span class="move-name">Clarify</span>
+        <span class="move-desc">Ask one precise question. Not stalling — real precision that makes your answer better.</span>
+      </div>
+      <div class="move-pill">
+        <span class="move-num-big">03</span>
+        <span class="move-name">Pre-frame</span>
+        <span class="move-desc">Set the direction. Set the ending. Ask for agreement. Then answer inside that structure.</span>
+      </div>
+    </div>
+    <div class="quote-line a4" style="margin-top:24px">
+      <div class="caveat-sm">All three create space. Space is what panic takes away. You're putting it back.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 9 REFLECT -->
+<div class="slide slide-reflect" id="s9">
+  <div class="reflect-inner">
+    <div class="reflect-tag a1">Reflect</div>
+    <div class="reflect-q a2">"Has anyone ever paraphrased your question back before answering? How did it make you feel about them?"</div>
+    <div class="reflect-sub a3">What did it signal to you?</div>
+  </div>
+</div>
+
+<!-- 10 PARAPHRASE -->
+<div class="slide slide-content" id="s10">
+  <div class="lines"></div>
+  <div class="content-inner">
+    <div class="tag a1">Move 01 — Paraphrase</div>
+    <h2 class="section a2">"So what you're <span style="color:#C8593A">really asking</span> is... — is that right?"</h2>
+    <div class="caveat-sm a3" style="margin-bottom:8px">reflect the meaning back as a question — then stop</div>
+    <button class="reveal-btn a3" onclick="toggle(this,'ex10')">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M4 2l6 5-6 5" stroke="#C8593A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      See it in action
+    </button>
+    <div class="answer-block" id="ex10">
+      <div class="ex-grid">
+        <div class="ex-card">
+          <div class="ex-context">Job interview</div>
+          <div class="ex-situation">"Why do you want to leave your current company?"</div>
+          <div class="ex-arrow">→ reflect the meaning, end with a question, stop:</div>
+          <div class="ex-response">"So what you're really asking is what I'm looking for next — not just what I'm running from. Is that right?"</div>
+        </div>
+        <div class="ex-card">
+          <div class="ex-context">Client meeting</div>
+          <div class="ex-situation">"Why did this project go over budget?"</div>
+          <div class="ex-arrow">→ reflect the meaning, end with a question, stop:</div>
+          <div class="ex-response">"So what you're really asking is what went wrong from my side — is that a fair way to put it?"</div>
+        </div>
+        <div class="ex-card">
+          <div class="ex-context">Senior stakeholder, on the spot</div>
+          <div class="ex-situation">"What's your opinion on this direction?"</div>
+          <div class="ex-arrow">→ reflect the meaning, end with a question, stop:</div>
+          <div class="ex-response">"So what you're really asking is whether I actually think this is the right call?"</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 11 REFLECT -->
+<div class="slide slide-reflect" id="s11">
+  <div class="reflect-inner">
+    <div class="reflect-tag a1">Reflect</div>
+    <div class="reflect-q a2">"When was the last time you guessed what someone meant, answered that, and got it wrong? What would one question have changed?"</div>
+    <div class="reflect-sub a3">Think of a real situation.</div>
+  </div>
+</div>
+
+<!-- 12 CLARIFY -->
+<div class="slide slide-content" id="s12">
+  <div class="lines"></div>
+  <div class="content-inner">
+    <div class="tag a1">Move 02 — Clarify</div>
+    <h2 class="section a2">"Just so I'm on the same page — <span style="color:#C8593A">do you mean X or Y?</span>"</h2>
+    <div class="caveat-sm a3" style="margin-bottom:8px">precision, not stalling</div>
+    <button class="reveal-btn a3" onclick="toggle(this,'ex12')">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M4 2l6 5-6 5" stroke="#C8593A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      See it in action
+    </button>
+    <div class="answer-block" id="ex12">
+      <div class="ex-grid">
+        <div class="ex-card">
+          <div class="ex-context">Client feedback</div>
+          <div class="ex-situation">"Can you make this more professional?"</div>
+          <div class="ex-arrow">→ instead of guessing and redoing it three times:</div>
+          <div class="ex-response">"Just so I'm clear — do you mean the tone, the structure, or both? Because those are different fixes."</div>
+        </div>
+        <div class="ex-card">
+          <div class="ex-context">Performance review</div>
+          <div class="ex-situation">"I feel like you're not fully engaged lately."</div>
+          <div class="ex-arrow">→ instead of defending or apologizing immediately:</div>
+          <div class="ex-response">"Just so I understand — are you noticing something specific, or is this a pattern you've been seeing for a while? I want to address the right thing."</div>
+        </div>
+        <div class="ex-card">
+          <div class="ex-context">Presentation to leadership</div>
+          <div class="ex-situation">"Is this scalable?"</div>
+          <div class="ex-arrow">→ instead of answering the wrong version:</div>
+          <div class="ex-response">"Just so I'm on the same page — scalable in terms of budget, team size, or infrastructure? The answer is different for each."</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 13 REFLECT -->
+<div class="slide slide-reflect" id="s13">
+  <div class="reflect-inner">
+    <div class="reflect-tag a1">Reflect</div>
+    <div class="reflect-q a2">"If you said 'give me a moment — I want to give you a real answer' — what would that require you to believe about yourself in that moment?"</div>
+    <div class="reflect-sub a3">This is the identity question.</div>
+  </div>
+</div>
+
+<!-- 14 PRE-FRAME -->
+<div class="slide slide-content" id="s14">
+  <div class="lines"></div>
+  <div class="content-inner">
+    <div class="tag a1">Move 03 — Pre-frame</div>
+    <h2 class="section a2" style="margin-bottom:20px">Set the direction. Set the ending.<br><span style="color:#C8593A">Ask for agreement.</span></h2>
+    <div class="preframe-parts a3">
+      <div class="pf-part">
+        <div class="pf-num">01</div>
+        <div class="pf-label">direction →</div>
+        <div class="pf-body">Tell them where your answer is going</div>
+      </div>
+      <div class="pf-part">
+        <div class="pf-num">02</div>
+        <div class="pf-label">ending →</div>
+        <div class="pf-body">Tell them what they'll have at the end of it</div>
+      </div>
+      <div class="pf-part">
+        <div class="pf-num">03</div>
+        <div class="pf-label">agreement →</div>
+        <div class="pf-body">Ask if that works — get a yes before you even start</div>
+      </div>
+    </div>
+    <button class="reveal-btn a4" onclick="toggle(this,'ex14')">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M4 2l6 5-6 5" stroke="#C8593A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      See it in action
+    </button>
+    <div class="answer-block" id="ex14">
+      <div class="ex-grid">
+        <div class="ex-card">
+          <div class="ex-context">Promotion conversation</div>
+          <div class="ex-situation">"Do you think you're ready for this?"</div>
+          <div class="ex-arrow">→ direction + ending + agreement:</div>
+          <div class="ex-response">"I want to answer that in two parts — where I am now, and what I'm already doing to close the gap. By the end you'll be able to judge for yourself. Can I do that?"</div>
+        </div>
+        <div class="ex-card">
+          <div class="ex-context">Client meeting — over budget</div>
+          <div class="ex-situation">"Why did this project go over budget?"</div>
+          <div class="ex-arrow">→ direction + ending + agreement:</div>
+          <div class="ex-response">"I want to walk you through what happened and what I'd change. By the end you'll have a clear picture of where the decision went wrong. Does that work?"</div>
+        </div>
+        <div class="ex-card">
+          <div class="ex-context">Sales pitch pushback</div>
+          <div class="ex-situation">"Why should we choose you over your competitor?"</div>
+          <div class="ex-arrow">→ direction + ending + agreement:</div>
+          <div class="ex-response">"Let me tell you exactly how we're different on the one thing that matters most for your situation. By the end you'll know whether we're the right fit or not. Fair?"</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 15 FINAL REFLECT -->
+<div class="slide slide-reflect" id="s15">
+  <div class="reflect-inner">
+    <div class="reflect-tag a1">Final reflection</div>
+    <div class="reflect-q a2">"Which of the three moves would require the biggest shift in how you see yourself in a conversation?"</div>
+    <div class="reflect-sub a3" style="margin-top:40px;font-size:clamp(20px,2.2vw,32px);color:rgba(247,220,200,0.45);font-style:normal;font-family:'Playfair Display',serif;font-weight:400;font-style:italic">
+      "I belong here. I can slow this down.<br>My answer is worth waiting for."
+    </div>
+  </div>
+</div>
+
+</div><!-- end deck -->
+
+<!-- NAV -->
+<div class="nav">
+  <button class="nb" id="prev" onclick="nav(-1)" disabled>←</button>
+  <div class="dots" id="dots"></div>
+  <button class="nb" id="next" onclick="nav(1)">→</button>
+</div>
+
+<div class="key-hint">← → arrow keys</div>
+
+<script>
+let cur=0,tot=15;
+const dotsEl=document.getElementById('dots');
+for(let i=0;i<tot;i++){
+  const d=document.createElement('div');
+  d.className='dot'+(i===0?' active':'');
+  d.onclick=()=>go(i);
+  dotsEl.appendChild(d);
+}
+function go(n){
+  document.getElementById('s'+(cur+1)).classList.remove('active');
+  dotsEl.children[cur].classList.remove('active');
+  cur=n;
+  const sl=document.getElementById('s'+(cur+1));
+  sl.classList.add('active');
+  sl.querySelectorAll('.a1,.a2,.a3,.a4,.a5').forEach(el=>{el.style.animation='none';void el.offsetWidth;el.style.animation=''});
+  sl.querySelectorAll('.answer-block').forEach(b=>b.classList.remove('visible'));
+  sl.querySelectorAll('.reveal-btn').forEach(b=>{
+    b.classList.remove('open');
+    b.innerHTML='<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M4 2l6 5-6 5" stroke="#C8593A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> See it in action';
+  });
+  dotsEl.children[cur].classList.add('active');
+  document.getElementById('prev').disabled=cur===0;
+  document.getElementById('next').disabled=cur===tot-1;
+}
+function nav(d){const n=cur+d;if(n>=0&&n<tot)go(n)}
+function toggle(btn,id){
+  const block=document.getElementById(id);
+  const open=block.classList.contains('visible');
+  block.classList.toggle('visible',!open);
+  btn.classList.toggle('open',!open);
+  const label=open?'See it in action':'Hide examples';
+  btn.innerHTML='<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M4 2l6 5-6 5" stroke="#C8593A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> '+label;
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='ArrowDown')nav(1);
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp')nav(-1);
+});
+</script>
+</body>
+</html>
